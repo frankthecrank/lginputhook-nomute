@@ -5,6 +5,9 @@ into a real **Mute** button. For rooted LG webOS TVs.
 
 LG's 2025 AI Magic Remote mutes the TV when you hold Volume Down, and there is no setting to turn that off.
 This small webOS homebrew app adds two switches for it.
+<p align="center">
+<img width="622" height="480" alt="Screenshot 2026-10-24 210641" src="https://github.com/user-attachments/assets/eff7c80a-198a-4a46-bba7-af476adce58f" /></p>
+
 
 ## Settings
 
