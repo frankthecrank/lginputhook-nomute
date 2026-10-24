@@ -1,0 +1,6 @@
+.build/
+app/service/inputhook/ezinject
+app/service/inputhook/*.so
+app/*.ipk
+app/dist/
+app/node_modules/
