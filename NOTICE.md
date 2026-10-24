@@ -37,4 +37,4 @@ Changes to `app/`:
 - Default configuration: Volume Down "hold without mute" enabled.
 
 Modifications are released under the same terms as the files they modify (BSD-3-Clause for `app/`, GPL-3.0 for
-`native/` and `patches/`). Add your own copyright line here if you publish this under your name.
+`native/` and `patches/`). Modifications Copyright (c) 2026 frankthecrank.
