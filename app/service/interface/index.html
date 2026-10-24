@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>LG Input Hook configuration</title>
+		<link type="text/css" rel="stylesheet" href="style.css">
+	</head>
+	<body>
+		<div id="url"></div>
+		<section id="remote-settings" class="panel">
+			<div class="panel-head">
+				<span class="panel-title">Magic Remote 2025 Settings</span>
+				<span id="settings-status" class="panel-status"></span>
+			</div>
+			<div class="settings-row">
+				<div class="setting" title="Key code 114 - repeat as taps">
+					<div class="setting-head">
+						<label class="switch">
+							<input type="checkbox" id="toggle-voldown">
+							<span class="slider"></span>
+						</label>
+						<span class="setting-name">Volume Down: hold without mute</span>
+					</div>
+					<div class="setting-desc">Holding Volume Down keeps lowering the volume instead of muting the TV.</div>
+					<div class="setting-note" id="note-voldown"></div>
+				</div>
+				<div class="setting" title="Key code 1124 - replaced by 113 (Mute) as one short tap">
+					<div class="setting-head">
+						<label class="switch">
+							<input type="checkbox" id="toggle-guide">
+							<span class="slider"></span>
+						</label>
+						<span class="setting-name">Accessibility button works as Mute</span>
+					</div>
+					<div class="setting-desc">The top-right button (normally opens the Accessibility menu) toggles Mute instead.</div>
+					<div class="setting-note" id="note-guide"></div>
+				</div>
+			</div>
+		</section>
+		<div class="section-label">Key binds:</div>
+		<div id="keybinds">
+		</div>
+		<div class="toolbar">
+			<button id="create">Add keybind</button>
+			<button id="save">Save changes</button>
+			<button id="reboot">Reboot</button>
+			<span id="status" style="color: #0F0;"></span>
+		</div>
+		<div class="logbar">
+			<span>View logs:</span>
+			<select id="log">
+				<option value="RELEASE">RELEASE (IR remote on some older WebOS versions)</option>
+				<option value="tvservice">tvservice (IR remote on WebOS 4.x and below)</option>
+				<option value="micomservice">micomservice (IR remote on WebOS 5.x and up)</option>
+				<option value="lginput2" selected>lginput2 (LG Magic Remote)</option>
+				<option value="testapp">testapp (meant for debugging purposes)</option>
+			</select>
+		</div>
+		<div id="logs">
+			<span id="inputhook-label">lginput-hook.log:</span>
+			<pre class="log" id="inputhook-log"></pre>
+			<span id="ezinject-label">ezinject.log:</span>
+			<pre class="log" id="ezinject-log"></pre>
+		</div>
+		<script src="main.js"></script>
+	</body>
+</html>

@@ -1,0 +1,236 @@
+html {
+	height: 100%;
+}
+
+body {
+	background-color: #0C0C0C;
+	color: #CCCCCC;
+	font-family: Arial;
+	font-size: 22px;
+	margin: 0;
+	padding: 8px 16px;
+	box-sizing: border-box;
+	min-height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+#url {
+	font-size: 18px;
+	line-height: 1.35;
+	margin-bottom: 8px;
+}
+
+.section-label {
+	margin-top: 8px;
+}
+
+.toolbar {
+	margin: 6px 0;
+}
+
+.logbar {
+	margin: 4px 0;
+}
+
+/* Logs fill the remaining screen height, so nothing is cut off at the bottom */
+#logs {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-height: 240px;
+	font-size: 16px;
+}
+
+.log {
+	overflow: auto;
+	display: block;
+	border: 2px solid white;
+	background-color: #000;
+	font-size: 16px;
+	margin: 2px 0 6px 0;
+	flex: 1 1 0;
+	min-height: 70px;
+}
+
+#inputhook-log {
+	flex: 3 1 0;
+}
+
+#ezinject-log {
+	flex: 1 1 0;
+}
+
+textarea {
+	height: 200px;
+	width: 90%;
+	overflow: scroll;
+	display: block;
+	border: 2px solid white;
+	background-color: #000;
+	font-size: 18px;
+	color: #CCCCCC;
+	white-space: nowrap;
+}
+
+#keybinds {
+	margin: 4px 0 4px 10px;
+	line-height: 44px;
+}
+
+.binding {
+	border: 2px solid white;
+	margin-bottom: 2px;
+}
+
+.label {
+	margin-left: 10px;
+}
+
+a {
+	color: #16C60C;
+}
+
+/* Settings panel with two on/off switches side by side */
+.panel {
+	border: 2px solid #777;
+	margin: 0;
+	padding: 8px 14px 10px 14px;
+	box-sizing: border-box;
+}
+
+.panel-head {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	margin-bottom: 8px;
+}
+
+.panel-title {
+	font-size: 22px;
+	font-weight: bold;
+	color: #16C60C;
+}
+
+.panel-status {
+	font-size: 16px;
+	min-height: 20px;
+}
+
+.settings-row {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 -8px;
+}
+
+.setting {
+	flex: 1 1 380px;
+	min-width: 0;
+	margin: 0 8px 4px 8px;
+	padding: 8px 12px;
+	background-color: #151515;
+	border: 1px solid #333;
+	box-sizing: border-box;
+}
+
+.setting-head {
+	display: flex;
+	align-items: center;
+}
+
+.setting-name {
+	font-size: 20px;
+	font-weight: bold;
+	color: #FFFFFF;
+	margin-left: 12px;
+	line-height: 1.25;
+}
+
+.setting-desc {
+	font-size: 17px;
+	line-height: 1.35;
+	margin-top: 6px;
+	color: #BBBBBB;
+	white-space: normal;
+	overflow-wrap: break-word;
+}
+
+.setting-note {
+	font-size: 16px;
+	margin-top: 4px;
+	color: #F9A825;
+	line-height: 1.3;
+}
+
+.setting-note:empty {
+	display: none;
+}
+
+.switch {
+	position: relative;
+	display: inline-block;
+	flex: none;
+	width: 56px;
+	height: 30px;
+}
+
+.switch input {
+	opacity: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 2;
+	cursor: pointer;
+}
+
+.slider {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	border: 2px solid #777;
+	border-radius: 30px;
+	background-color: #1A1A1A;
+	transition: background-color 0.2s, border-color 0.2s;
+	box-sizing: border-box;
+}
+
+.slider:before {
+	content: "";
+	position: absolute;
+	left: 3px;
+	top: 3px;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background-color: #CCCCCC;
+	transition: transform 0.2s, background-color 0.2s;
+}
+
+.switch input:checked + .slider {
+	background-color: #16C60C;
+	border-color: #16C60C;
+}
+
+.switch input:checked + .slider:before {
+	transform: translateX(26px);
+	background-color: #FFFFFF;
+}
+
+.switch input:focus + .slider {
+	outline: 2px solid #FFFFFF;
+	outline-offset: 2px;
+}
+
+.switch input:disabled {
+	cursor: not-allowed;
+}
+
+.switch.disabled {
+	opacity: 0.4;
+}

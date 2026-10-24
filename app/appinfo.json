@@ -1,0 +1,11 @@
+{
+  "id": "org.webosbrew.inputhook.nomute",
+  "version": "1.2.1",
+  "vendor": "webosbrew.org",
+  "type": "web",
+  "main": "index.html",
+  "title": "LG Input Hook NoMute",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "iconColor": "#0C0C0C"
+}

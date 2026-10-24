@@ -1,0 +1,6 @@
+{
+  "appDescription": "LG Input Hook NoMute - Hold Volume Down without muting, and turn the Magic Remote 2025 Accessibility button into Mute",
+  "iconUri": "https://raw.githubusercontent.com/frankthecrank/lginputhook-nomute/main/app/assets/largeIcon.png",
+  "sourceUrl": "https://github.com/frankthecrank/lginputhook-nomute",
+  "rootRequired": true
+}

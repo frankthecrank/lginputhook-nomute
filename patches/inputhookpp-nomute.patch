@@ -1,0 +1,177 @@
+diff -ruN '--exclude=build' '--exclude=.git' '--exclude=.github' a/inputhook.cpp b/inputhook.cpp
+--- a/inputhook.cpp	2026-10-24 14:24:53.998304452 +0200
++++ b/inputhook.cpp	2026-10-24 18:28:18.623020975 +0200
+@@ -283,7 +283,7 @@
+     }
+ }
+ 
+-KeyResult InputHook::handleKey(const int keycode, const int state) {
++KeyResult InputHook::handleKey(const int keycode, const int state, const bool tapCapable) {
+     std::shared_ptr<const KeyBindings> bindings;
+     {
+         std::shared_lock lock(m_mutex);
+@@ -294,13 +294,29 @@
+         return {Action::PASS, keycode};
+     }
+     const auto& binding = entry->second;
++    // Optional state filter: events whose state is not listed pass through untouched.
++    if (binding.stateMask != 0 &&
++        (state < 0 || state > 31 || (binding.stateMask & (std::uint32_t{1} << state)) == 0)) {
++        return {Action::PASS, keycode};
++    }
+     switch (binding.action) {
+     case BindingAction::Replace:
++        if (binding.asTap && tapCapable) {
++            if (state == 1) {
++                return {Action::REPLACE_TAP, binding.replacement};
++            }
++            return {Action::IGNORE, keycode};
++        }
+         return {Action::REPLACE, binding.replacement};
+     case BindingAction::Pass:
+         return {Action::PASS, keycode};
+     case BindingAction::Ignore:
+         return {Action::IGNORE, keycode};
++    case BindingAction::Tap:
++        if (state == 2) {
++            return {Action::TAP, keycode};
++        }
++        return {Action::PASS, keycode};
+     case BindingAction::Exec:
+     case BindingAction::Launch:
+         if (state == 1) {
+@@ -353,7 +369,17 @@
+     const int uinput_code = info->keybinds[keyid].uinput_code;
+     INFO("lginput_uinput_send_button called: keyid=%d, state=%d uinput_code=%d", keyid, state, uinput_code);
+ 
+-    const auto [action, newKeycode] = handleKey(info->keybinds[keyid].uinput_code, state);
++    const auto [action, newKeycode] = handleKey(info->keybinds[keyid].uinput_code, state, true);
++
++    if (action == Action::REPLACE_TAP) {
++        // One short tap of the replacement key; the real release/repeats are dropped by handleKey.
++        const int orig = info->keybinds[keyid].uinput_code;
++        info->keybinds[keyid].uinput_code = newKeycode;
++        orig_lginput_uinput_send_button(info, keyid, 1);
++        const int ret = orig_lginput_uinput_send_button(info, keyid, 0);
++        info->keybinds[keyid].uinput_code = orig;
++        return ret;
++    }
+ 
+     if (action == Action::REPLACE) {
+         const int orig = info->keybinds[keyid].uinput_code;
+@@ -367,6 +393,13 @@
+         return 0;
+     }
+ 
++    if (action == Action::TAP) {
++        // Replace the auto-repeat by "release, press": the kernel still sees the key as held
++        // (down again) and the real release at the end passes through unchanged.
++        orig_lginput_uinput_send_button(info, keyid, 0);
++        return orig_lginput_uinput_send_button(info, keyid, 1);
++    }
++
+     return orig_lginput_uinput_send_button(info, keyid, state);
+ }
+ 
+diff -ruN '--exclude=build' '--exclude=.git' '--exclude=.github' a/inputhook.h b/inputhook.h
+--- a/inputhook.h	2026-10-24 14:24:53.998304452 +0200
++++ b/inputhook.h	2026-10-24 18:28:15.107021133 +0200
+@@ -51,6 +51,8 @@
+     REPLACE,
+     PASS,
+     IGNORE,
++    TAP,
++    REPLACE_TAP,
+ };
+ 
+ struct KeyResult {
+@@ -63,7 +65,7 @@
+     using MICOM_FuncWriteKeyEvent_t = int(int, uint16_t, uint16_t, int32_t);
+     using write_t = ssize_t(int, const void*, size_t);
+ 
+-    static constexpr std::string_view CONFIG_LOCATION = "/home/root/.config/lginputhook/keybinds.json";
++    static constexpr std::string_view CONFIG_LOCATION = "/home/root/.config/lginputhook-nomute/keybinds.json";
+ 
+ public:
+     [[nodiscard]] static InputHook& instance();
+@@ -89,7 +91,7 @@
+ 
+     void watchConfigFile(std::stop_token stop);
+ 
+-    [[nodiscard]] KeyResult handleKey(int keycode, int state);
++    [[nodiscard]] KeyResult handleKey(int keycode, int state, bool tapCapable = false);
+ 
+     static ssize_t trampoline_write(int fd, const void* events, size_t count) noexcept;
+ 
+diff -ruN '--exclude=build' '--exclude=.git' '--exclude=.github' a/keybindings.cpp b/keybindings.cpp
+--- a/keybindings.cpp	2026-10-24 14:24:53.998304452 +0200
++++ b/keybindings.cpp	2026-10-24 18:28:13.747021194 +0200
+@@ -30,6 +30,10 @@
+                 binding.action = BindingAction::Pass;
+             } else if (action == "ignore") {
+                 binding.action = BindingAction::Ignore;
++            } else if (action == "tap") {
++                // Auto-repeat events (state 2) are turned into release+press pairs, so the
++                // system sees repeated short presses instead of one long press.
++                binding.action = BindingAction::Tap;
+             } else if (action == "replace") {
+                 const auto& replacement = value.at("keycode");
+                 if (!replacement.is_number_integer() || replacement < 0 ||
+@@ -38,6 +42,12 @@
+                 }
+                 binding.action = BindingAction::Replace;
+                 binding.replacement = replacement.get<int>();
++                if (const auto asTap = value.find("asTap"); asTap != value.end()) {
++                    if (!asTap->is_boolean()) {
++                        throw std::invalid_argument("asTap must be a boolean");
++                    }
++                    binding.asTap = asTap->get<bool>();
++                }
+             } else if (action == "exec") {
+                 binding.action = BindingAction::Exec;
+                 binding.payload = value.at("command").get<std::string>();
+@@ -61,6 +71,17 @@
+             } else {
+                 throw std::invalid_argument("unknown action");
+             }
++            if (const auto states = value.find("states"); states != value.end()) {
++                if (!states->is_array() || states->empty()) {
++                    throw std::invalid_argument("states must be a non-empty array of integers between 0 and 31");
++                }
++                for (const auto& s : *states) {
++                    if (!s.is_number_integer() || s < 0 || s > 31) {
++                        throw std::invalid_argument("states must be a non-empty array of integers between 0 and 31");
++                    }
++                    binding.stateMask |= (std::uint32_t{1} << s.get<int>());
++                }
++            }
+             bindings.emplace(keycode, std::move(binding));
+         } catch (const nlohmann::json::exception& error) {
+             return std::unexpected(std::format("Invalid binding '{}': {}", name, error.what()));
+diff -ruN '--exclude=build' '--exclude=.git' '--exclude=.github' a/keybindings.h b/keybindings.h
+--- a/keybindings.h	2026-10-24 14:24:53.998304452 +0200
++++ b/keybindings.h	2026-10-24 18:28:12.587021246 +0200
+@@ -2,15 +2,22 @@
+ 
+ #include <nlohmann/json_fwd.hpp>
+ 
++#include <cstdint>
+ #include <expected>
+ #include <string>
+ #include <unordered_map>
+ 
+-enum class BindingAction { Pass, Ignore, Replace, Exec, Launch };
++enum class BindingAction { Pass, Ignore, Replace, Exec, Launch, Tap };
+ 
+ struct KeyBinding {
+     BindingAction action = BindingAction::Pass;
+     int replacement = 0;
++    // Replace only: send the replacement as one short tap (press+release) on the real press
++    // and drop the real release and all repeats, so the system never sees a long press.
++    bool asTap = false;
++    // Optional "states" filter: bit n set = binding applies to events with state n.
++    // 0 (no "states" given) = binding applies to every state, as before.
++    std::uint32_t stateMask = 0;
+     // Shell command for Exec, serialized Luna request for Launch.
+     std::string payload;
+ };
